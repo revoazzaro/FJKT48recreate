@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
         content_body: string;
         background_image: string;
         valid_date_from: string;
-      }[]
+      }
     }
   }
 
@@ -25,8 +25,8 @@ export default defineEventHandler(async (event) => {
     })
 
     // Akses melalui response.data.result
-    if (response?.data?.result[0]?.content_body) {
-      let html = response.data.result[0].content_body
+    if (response?.data?.result?.content_body) {
+      let html = response.data.result.content_body
       const proxyUrl = 'https://wsrv.nl/?url='
 
       // Regex 1: URL Lengkap
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       )
 
       // Simpan kembali ke objek data
-      response.data.result[0].content_body = html
+      response.data.result.content_body = html
     }
 
     return response

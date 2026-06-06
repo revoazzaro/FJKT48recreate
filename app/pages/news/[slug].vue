@@ -51,13 +51,13 @@ const goBack = () => {
           <h1
             class="bg-gradient-to-r from-[#e20514] from-[16.5%] via-[#ff3891] via-[66.5%] to-[#ff8514] bg-clip-text text-transparent text-3xl lg:text-4xl/[45px] font-bold mb-4"
           >
-            {{ berita.data.result[0].title }}
+            {{ berita.data.result.title }}
           </h1>
           <div class="flex flex-col gap-2 mb-3">
             <NuxtImg
-              v-if="berita?.data?.result[0]?.background_image"
+              v-if="berita?.data?.result?.background_image"
               :src="
-                'https://wsrv.nl/?url=' + berita.data.result[0].background_image
+                'https://wsrv.nl/?url=' + berita.data.result.background_image
               "
               class="w-full h-full object-cover rounded-3xl md:mb-1"
             />
@@ -65,14 +65,14 @@ const goBack = () => {
               <p
                 class="text-xs md:text-sm text-black-light font-medium bg-secondary px-2 py-1 rounded-full"
               >
-                {{ berita.data.result[0].category }}
+                {{ berita.data.result.category }}
               </p>
               <p class="text-xs md:text-base text-black-light font-medium">
-                {{ formatDate(berita.data.result[0].valid_date_from) }}
+                {{ formatDate(berita.data.result.valid_date_from) }}
               </p>
             </div>
           </div>
-          <div v-html="berita.data.result[0].content_body" class=""></div>
+          <div v-html="berita.data.result.content_body" class=""></div>
         </div>
       </div>
     </div>
