@@ -1,12 +1,22 @@
 <script setup lang="ts">
-import Navbar from './components/navbar.vue';
+import Navbar from "./components/navbar.vue";
 
+useSeoMeta({
+  title: "FJKT48 - Portofolio Clone Web Resmi JKT48",
+  description:
+    "Proyek portofolio fan-made yang mereplikasi situs resmi JKT48 untuk kebutuhan belajar dan eksplorasi frontend.",
+  ogTitle: "FJKT48 - Portofolio Clone Web Resmi JKT48",
+  ogDescription:
+    "Proyek portofolio fan-made yang mereplikasi situs resmi JKT48 untuk kebutuhan belajar dan eksplorasi frontend.",
+  ogUrl: "https://jkt48recreate.pages.dev",
+  ogType: "website",
+});
 </script>
 
 <template>
   <div>
     <Navbar />
-    <NuxtPage :keepalive="true"/>
+    <NuxtPage :keepalive="true" />
   </div>
 </template>
 
@@ -32,7 +42,7 @@ html {
 }
 
 body {
-  font-family: 'PlusJakartaSans';
+  font-family: "PlusJakartaSans";
 }
 
 ::-webkit-scrollbar {
