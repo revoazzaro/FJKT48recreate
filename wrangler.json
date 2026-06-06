@@ -1,8 +1,0 @@
-{
-  "name": "jkt48recreate",
-  "compatibility_date": "2024-04-01",
-  "main": ".output/server/index.mjs",
-  "assets": {
-    "directory": "./.output/public"
-  }
-}
