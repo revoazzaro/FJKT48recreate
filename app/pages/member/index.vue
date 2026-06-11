@@ -73,8 +73,7 @@ const filteredMembers = computed(() => {
   }
 });
 
-// Tambahkan .split('T')[0] untuk hasil "YYYY-MM-DD"
-const dailyVersion = new Date().toISOString().split('T')[0];
+const dailyVersion = new Date().toISOString().split("T")[0];
 </script>
 
 <template>
@@ -126,7 +125,9 @@ const dailyVersion = new Date().toISOString().split('T')[0];
           <NuxtLink :to="'/member/' + member.jkt48_member_id">
             <div class="relative overflow-hidden aspect-[3/4]">
               <NuxtImg
-                :src="'https://wsrv.nl/?url=' + member.photo + '&v=' + dailyVersion"
+                :src="
+                  'https://wsrv.nl/?url=' + member.photo + '&v=' + dailyVersion
+                "
                 class="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-500"
                 :alt="member.name"
                 loading="lazy"

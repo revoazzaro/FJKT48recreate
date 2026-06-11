@@ -69,7 +69,6 @@ const { data: jadwal, pending } = await useFetch("/api/schedule", {
 //   });
 // };
 
-// Year filter
 const isYearOpen = ref(false);
 const yearRef = ref(null);
 
@@ -95,7 +94,6 @@ if (process.client) {
   });
 }
 
-// Type filter
 const isTypeOpen = ref(false);
 const typeRef = ref(null);
 
@@ -114,15 +112,12 @@ const selectType = (type) => {
 };
 
 const filteredSchedule = computed(() => {
-  // Pastikan kita mengambil array aslinya dulu
-  // Jika API kamu mengembalikan { data: [...] }, maka ambil jadwal.value.data
   const originalData = jadwal.value?.data || [];
 
   if (selectedType.value === "ALL") {
     return { data: originalData };
   } else {
     const filtered = originalData.filter((item) => {
-      // Sesuaikan 'item.type' dengan nama field kategori dari API JKT48
       return item.type === selectedType.value;
     });
     return { data: filtered };
@@ -132,26 +127,22 @@ const filteredSchedule = computed(() => {
 const scrollContainer = ref(null);
 const monthRefs = ref([]);
 
-// Fungsi ganti bulan
 const selectMonth = (m) => {
   router.push({ query: { ...route.query, month: m } });
 };
 
-// Logic Auto-Scroll ke bulan aktif
 const scrollToActiveMonth = () => {
   const activeEl = monthRefs.value[month.value - 1];
   if (activeEl) {
     activeEl.scrollIntoView({
       behavior: "smooth",
-      // inline: 'center', // Taruh di tengah horizontal
       block: "nearest",
     });
   }
 };
 
-// Jalankan saat halaman pertama dimuat & saat bulan berubah
 onMounted(() => {
-  setTimeout(scrollToActiveMonth, 500); // Beri jeda sedikit agar DOM siap
+  setTimeout(scrollToActiveMonth, 500);
 });
 
 watch(month, () => {
@@ -171,7 +162,6 @@ const getMemberTypeClass = (type) => {
 };
 const getTypeClass = (type) => {
   if (!type) return "hidden";
-  // Gunakan warna netral (Slate/Gray) agar tidak "berantem" dengan warna Tim
   return "text-xs font-semibold px-2 py-0.5 rounded-md tracking-wide bg-slate-100 text-slate-500 border border-slate-200/50 uppercase";
 };
 </script>

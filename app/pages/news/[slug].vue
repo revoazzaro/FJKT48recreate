@@ -14,15 +14,6 @@ const formatDate = (dateString) => {
   });
 };
 
-// const isLandscape = ref(true);
-
-// const onImageLoad = (event) => {
-//   if (event?.target?.naturalWidth) {
-//     isLandscape.value = event.target.naturalWidth > event.target.naturalHeight;
-//     console.log('Image loaded. Orientasi:', isLandscape.value ? 'Landscape' : 'Portrait')
-//   }
-// }
-
 const goBack = () => {
   if (window.history.length > 1) {
     router.back();

@@ -127,15 +127,13 @@ onUnmounted(() => {
         </Transition>
       </Teleport>
 
-      <a href="/"
-        ><!-- Logo Putih jika berada di Home -->
+      <a href="/">
         <NuxtImg
           v-if="pathHome"
           src="https://jkt48.com/logo-white.png"
           class="max-w-20 md:max-w-28 lg:w-36 hidden md:block"
           alt="Logo-JKT48-White" />
 
-        <!-- Logo Merah jika di luar Home (Ukurannya bisa diset berbeda) -->
         <NuxtImg
           v-else
           src="https://jkt48.com/logo-red.png"
@@ -237,16 +235,15 @@ onUnmounted(() => {
         <Icon name="mdi:theme-light-dark" class="text-white size-5" />
         <p class="text-white">Dark</p>
       </div> -->
-      <a href="/"
-        ><NuxtImg
-          :src="
-            pathHome
-              ? 'https://res.cloudinary.com/dlydxsbfj/image/upload/v1780727161/JKT48_FIGHT_LOVE_DREAM_PASSION_vxunb3.webp'
-              : 'https://res.cloudinary.com/dlydxsbfj/image/upload/v1780727784/JKT48_FIGHT_LOVE_DREAM_PASSION_RED_ycfrmm.webp'
-          "
-          alt="Logo-JKT48"
-          class="max-w-16 lg:max-w-20 hidden md:block"
-      /></a>
+      <NuxtImg
+        :src="
+          pathHome
+            ? 'https://res.cloudinary.com/dlydxsbfj/image/upload/v1780727161/JKT48_FIGHT_LOVE_DREAM_PASSION_vxunb3.webp'
+            : 'https://res.cloudinary.com/dlydxsbfj/image/upload/v1780727784/JKT48_FIGHT_LOVE_DREAM_PASSION_RED_ycfrmm.webp'
+        "
+        alt="Logo-JKT48"
+        class="max-w-16 lg:max-w-20 hidden md:block"
+      />
     </div>
   </nav>
 </template>

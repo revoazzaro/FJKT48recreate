@@ -57,7 +57,6 @@ const nickName = computed(() => {
 
   return type === "JKT48_VIRTUAL" ? nickname + " JKT48V" : nickname + " JKT48";
 });
-// Tambahkan .split('T')[0] untuk hasil "YYYY-MM-DD"
 const dailyVersion = new Date().toISOString().split("T")[0];
 
 const goBack = () => {

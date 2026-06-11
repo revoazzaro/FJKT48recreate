@@ -6,12 +6,10 @@ const { id } = route.params;
 const type = (route.query.type as string)?.toLowerCase() || "";
 const typeU = route.query?.type as string;
 
-// 1. Fetch Jadwal (Ganti nama pending agar tidak bentrok)
 const { data: jadwal, pending: pendingJadwal } = await useFetch<any>(
   `/api/schedule/${type}/${id}`,
 );
 
-// 2. Fetch Master Members untuk ambil Foto
 const { data: members, pending: pendingMembers } = await useFetch<any>(
   "/api/members",
   {
@@ -19,16 +17,13 @@ const { data: members, pending: pendingMembers } = await useFetch<any>(
   },
 );
 
-// 3. Gabungkan Data (Mapping)
 const scheduleDetail = computed(() => {
   const detail = jadwal.value?.data || {};
   const bdayNames = detail.birthday_member_name || [];
 
-  // Jika ada list member di jadwal dan data master member sudah siap
   if (detail.jkt48_member && members.value) {
     return {
       ...detail,
-      // Kita "suntikkan" data foto ke setiap member di jadwal
       jkt48_member: detail.jkt48_member.map((m: any) => {
         const match = members.value.find(
           (all: any) => all.jkt48_member_id === m.member_id,
@@ -36,9 +31,9 @@ const scheduleDetail = computed(() => {
         const isBday = bdayNames.includes(m.name);
         return {
           ...m,
-          photo: match?.photo || "", // Ambil foto jika ID cocok
+          photo: match?.photo || "",
           nickname: match?.nickname || "",
-          isBirthday: isBday, // Tandai jika member sedang ulang tahun
+          isBirthday: isBday,
           memberid: match?.member_id || "",
         };
       }),
@@ -46,8 +41,6 @@ const scheduleDetail = computed(() => {
   }
   return detail;
 });
-
-// --- Helper Functions ---
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "-";
@@ -80,7 +73,6 @@ const getMemberTypeClass = (type: string) => {
     PASSION: "text-passion bg-passion/5 border-passion/20",
     DREAM: "text-dream bg-dream/5 border-dream/20",
   };
-  // Gunakan type casting agar TS tidak bingung
   const colorClass =
     classes[type.toUpperCase() as keyof typeof classes] ||
     "text-primary bg-primary/5 border-primary/20";
@@ -91,7 +83,6 @@ const purchaseLink = computed(() => {
   const baseUrl = "https://jkt48.com/purchase";
   let path = "";
 
-  // Mapping berdasarkan tipe event
   switch (typeU?.toUpperCase()) {
     case "SHOW":
       path = "/schedule/show";
@@ -103,10 +94,9 @@ const purchaseLink = computed(() => {
       path = "/exclusive";
       break;
     default:
-      path = "/schedule"; // Fallback jika tipe tidak dikenal
+      path = "/schedule";
   }
 
-  // Gabungkan dengan ID (reference_code)
   return `${baseUrl}${path}?code=${id}`;
 });
 
@@ -120,12 +110,9 @@ const goBack = () => {
   }
 };
 
-// State untuk menyimpan tanggal yang sedang dipilih user
 const selectedDate = ref<string | undefined>("");
 
-// Ambil tanggal unik (seperti yang kita buat sebelumnya)
 const uniqueDates = computed(() => {
-  // Berikan tipe data string[] agar dates tidak menjadi unknown[]
   const allDates: string[] =
     scheduleDetail.value.session?.map((s: any) => s.date) || [];
 
@@ -140,7 +127,6 @@ const uniqueDates = computed(() => {
   return dates;
 });
 
-// Filter sesi agar yang muncul hanya yang sesuai dengan tanggal pilihan
 const filteredSessions = computed(() => {
   return (
     scheduleDetail.value.session?.filter(
@@ -543,143 +529,3 @@ const filteredSessions = computed(() => {
   scrollbar-width: none;
 }
 </style>
-
-<!-- <script setup>
-const route = useRoute();
-
-const { id } = route.params; // 'id' di sini adalah reference_code dari URL
-
-const type = route.query.type?.toLowerCase(); // Kecilkan huruf agar cocok dengan switch-case server
-
-const typeU = route.query?.type;
-
-const { data: jadwal, pending } = await useFetch(`/api/schedule/${type}/${id}`);
-
-const scheduleDetail = computed(() => jadwal.value?.data || {});
-
-const formatDate = (dateString) => {
-  if (!dateString) return "-";
-
-  return new Date(dateString).toLocaleDateString("id-ID", {
-    day: "numeric",
-
-    month: "long",
-
-    year: "numeric",
-  });
-};
-
-const getTypeClass = (type) => {
-  if (!type) return "hidden";
-
-  // Gunakan warna netral (Slate/Gray) agar tidak "berantem" dengan warna Tim
-
-  return "text-sm font-semibold px-2 py-0.5 rounded-md tracking-wide bg-slate-100 text-slate-500 border border-slate-200/50 uppercase";
-};
-
-const getMemberTypeClass = (type) => {
-  if (!type) return "hidden";
-
-  const classes = {
-    LOVE: "text-love bg-love/5 border-love/20",
-
-    PASSION: "text-passion bg-passion/5 border-passion/20",
-
-    DREAM: "text-dream bg-dream/5 border-dream/20",
-  };
-
-  const colorClass =
-    classes[type] || "text-primary bg-primary/5 border-primary/20";
-
-  return `text-sm font-bold px-2 py-0.5 rounded-md border tracking-wide ${colorClass}`;
-};
-</script> -->
-
-<!-- <template>
-  <div class="px-4 pt-20 pb-8 bg-[#FAFAFA] min-h-screen w-full">
-    <div class="flex flex-col w-full mx-auto justify-center lg:pt-10">
-      <div v-if="pending" class="animate-pulse">Loading content...</div>
-
-      <div v-if="jadwal" class="flex flex-col gap-4">
-        <NuxtLink
-          to="/schedule"
-          class="w-fit gap-2 flex text-black/30 hover:text-primary transition-colors md:ml-4"
-        >
-          <Icon name="mdi:arrow-left" class="text-3xl" />
-          <span class="hidden hover:text-primary"
-            >Kembali ke Daftar Member</span
-          >
-        </NuxtLink>
-        <div class="w-full lg:w-[75%] justify-center mx-auto">
-          <h1
-            class="bg-gradient-to-r from-[#e20514] from-[16.5%] via-[#ff3891] via-[66.5%] to-[#ff8514] bg-clip-text text-transparent text-3xl lg:text-4xl/[45px] font-bold mb-4"
-          >
-            {{ scheduleDetail.title }}
-          </h1>
-          <DetailShow v-if="typeU === 'SHOW'" class="flex flex-col gap-2 mb-3">
-            <NuxtImg
-              v-if="scheduleDetail.background_image"
-              :src="'https://wsrv.nl/?url=' + scheduleDetail.background_image"
-              class="w-full h-full object-cover rounded-3xl md:mb-1"
-            />
-            <div class="flex items-center gap-2 mb-5">
-              <p
-                class="text-xs md:text-sm text-black-light font-medium bg-secondary px-2 py-1 rounded-full"
-              >
-                {{ scheduleDetail.reception_start_time }}
-              </p>
-              <p :class="getTypeClass(typeU)">
-                {{ typeU }}
-              </p>
-              <p :class="getMemberTypeClass(scheduleDetail.jkt48_member_type)">
-                {{ scheduleDetail.jkt48_member_type }}
-              </p>
-              <p
-                v-for="member in scheduleDetail.jkt48_member"
-                class="text-xs md:text-sm text-black-light font-medium bg-secondary px-2 py-1 rounded-full"
-              >
-                {{ member.name }}
-              </p>
-              <p class="text-xs md:text-base text-black-light font-medium">
-                {{ formatDate(scheduleDetail.valid_date_from) }}
-              </p>
-            </div>
-            <div class="flex flex-col gap-3">
-              <div class="flex flex-col">
-                <p class="font-medium text-black-light text-lg">
-                  Tanggal Show:
-                </p>
-                <p class="font-medium text-black-light text-base">
-                  {{ formatDate(scheduleDetail.date) }}
-                </p>
-              </div>
-              <div v-if="scheduleDetail.start_time" class="flex flex-col">
-                <p class="font-medium text-black-light text-lg">Waktu Show:</p>
-                <p class="font-medium text-black-light text-base">
-                  {{ scheduleDetail.start_time }} -
-                  {{ scheduleDetail.end_time }} WIB
-                </p>
-              </div>
-              <div class="flex flex-col gap-2">
-                <p class="font-medium text-black-light text-lg">
-                  Member yang Tampil:
-                </p>
-                <div class="flex flex-wrap gap-2">
-                  <p
-                    v-for="member in scheduleDetail.jkt48_member"
-                    :class="[
-                      'font-medium text-lg capitalize',
-                      getMemberTypeClass(member.type),
-                    ]"
-                  >
-                    {{ member.name }} - {{ member.type.toLowerCase() }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </DetailShow>
-        </div>
-      </div>
-    </div>
-  </div>
-</template> -->
