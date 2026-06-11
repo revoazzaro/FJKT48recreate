@@ -1,21 +1,19 @@
-import axios from 'axios'
-
 export default defineEventHandler(async (event) => {
   try {
-    const response = await axios.post(
-      "https://api.idn.app/graphql",
-      {
-        query:
-          'query SearchLivestream { searchLivestream(query: "", limit: 100) { next_cursor result { slug title image_url view_count playback_url room_identifier status live_at end_at scheduled_at gift_icon_url category { name slug } creator { uuid username name avatar bio_description following_count follower_count is_follow } } }}',
+    const response: any = await $fetch("https://api.idn.app/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+        
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
+      body: {
+        query: 'query SearchLivestream { searchLivestream(query: "", limit: 100) { next_cursor result { slug title image_url view_count playback_url room_identifier status live_at end_at scheduled_at gift_icon_url category { name slug } creator { uuid username name avatar bio_description following_count follower_count is_follow } } }}'
       }
-    );
+    });
 
-    const data = response.data?.data?.searchLivestream?.result;
+    const data = response?.data?.searchLivestream?.result;
 
     if (!data || data.length === 0) {
       return { status: true, live_count: 0, data: [] };
@@ -52,10 +50,15 @@ export default defineEventHandler(async (event) => {
     };
 
   } catch (error: any) {
-    console.error("Error fetching IDN JKT48 lives:", error);
+    console.error("Detail Error Terjadi di Server:", {
+      message: error.message,
+      statusCode: error.statusCode || error.status,
+      responseData: error.data
+    });
+
     return createError({
       statusCode: 500,
-      statusMessage: "Gagal mengambil data Live IDN",
+      statusMessage: `Gagal mengambil data Live IDN: ${error.message}`,
     });
   }
-})
+});
