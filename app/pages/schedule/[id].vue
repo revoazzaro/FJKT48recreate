@@ -57,6 +57,7 @@ const formatTime = (timeString: string) => {
     .toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZoneName: "short",
     })
     .replace(".", ":");
 };
@@ -170,16 +171,18 @@ const filteredSessions = computed(() => {
             </div>
 
             <div class="flex flex-col gap-4">
-              <NuxtImg
-                v-if="
-                  scheduleDetail.thumbnail_image || scheduleDetail.preview_image
-                "
-                :src="
-                  'https://wsrv.nl/?url=' + scheduleDetail.thumbnail_image ||
-                  scheduleDetail.preview_image
-                "
-                class="w-full h-full object-cover rounded-3xl md:mb-1"
-              />
+              <div class="flex justify-center">
+                <NuxtImg
+                  v-if="
+                    scheduleDetail.thumbnail_image || scheduleDetail.preview_image
+                  "
+                  :src="
+                    'https://wsrv.nl/?url=' + scheduleDetail.thumbnail_image ||
+                    scheduleDetail.preview_image
+                  "
+                  class="w-full h-full md:w-[60%] md:h-[60%] object-cover rounded-xl md:mb-1"
+                />
+              </div>
 
               <div
                 v-if="scheduleDetail.content_body"
@@ -215,9 +218,9 @@ const filteredSessions = computed(() => {
                     </p>
                     <p class="text-slate-600 ml-2 text-base lg:text-lg">
                       {{ formatDate(sales.start_date) }},
-                      {{ formatTime(sales.start_date) }} WIB -
+                      {{ formatTime(sales.start_date) }} -
                       {{ formatDate(sales.end_date) }},
-                      {{ formatTime(sales.end_date) }} WIB
+                      {{ formatTime(sales.end_date) }}
                     </p>
                   </div>
                 </div>
