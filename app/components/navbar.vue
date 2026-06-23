@@ -9,6 +9,12 @@ const closeSidebar = () => {
   sidebarOpen.value = false;
 };
 
+useHead({
+  bodyAttrs: {
+    class: computed(() => (sidebarOpen.value ? "overflow-hidden" : "")),
+  },
+})
+
 const route = useRoute();
 const isScroll = ref(false);
 
@@ -58,7 +64,7 @@ onUnmounted(() => {
         >
           <div
             v-if="sidebarOpen"
-            class="fixed inset-0 z-[60] backdrop-blur-sm md:backdrop-blur-none"
+            class="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm md:backdrop-blur-none"
             @click="closeSidebar"
           ></div>
         </Transition>
@@ -73,48 +79,53 @@ onUnmounted(() => {
         >
           <aside
             v-if="sidebarOpen"
-            class="fixed top-0 left-0 w-[85%] h-full bg-gradient-to-br from-[#76869F] to-[#D14D72] z-[70] shadow-2xl px-6 py-8 border-r border-white/20 md:hidden"
+            class="fixed top-0 left-0 w-[85%] h-full bg-[#FAFAFA] z-[70] shadow-2xl px-6 py-8 border-r border-white/20 md:hidden"
           >
             <div class="flex justify-between items-center mb-16">
               <img
-                src="https://jkt48.com/logo-white.png"
+                src="https://jkt48.com/logo-red.png"
                 class="h-9 w-auto"
                 alt="Logo"
               />
-              <button @click="closeSidebar" class="text-secondary">
+              <button @click="closeSidebar" class="text-black">
                 <Icon name="mdi:close" class="text-4xl" />
               </button>
             </div>
 
-            <nav class="flex flex-col gap-6 text-lg font-medium text-secondary">
+            <nav class="flex flex-col gap-6 text-lg font-medium text-black">
               <NuxtLink
                 @click="closeSidebar"
                 to="/"
-                class="hover:border-b border-gray-200 pb-2"
+                class=""
+                exact-active-class="text-primary font-semibold"
                 >Home</NuxtLink
               >
               <NuxtLink
                 @click="closeSidebar"
                 to="/member"
-                class="hover:border-b border-gray-200 pb-2"
+                class=""
+                exact-active-class="text-primary font-semibold"
                 >Members</NuxtLink
               >
               <NuxtLink
                 @click="closeSidebar"
                 to="/news"
-                class="hover:border-b border-gray-200 pb-2"
+                class=""
+                exact-active-class="text-primary font-semibold"
                 >News</NuxtLink
               >
               <NuxtLink
                 @click="closeSidebar"
                 to="/schedule"
-                class="hover:border-b border-gray-200 pb-2"
+                class=""
+                exact-active-class="text-primary font-semibold"
                 >Schedule</NuxtLink
               >
               <NuxtLink
                 @click="closeSidebar"
                 to="/live"
-                class="hover:border-b border-gray-200 pb-2"
+                class=""
+                exact-active-class="text-primary font-semibold"
                 >Live</NuxtLink
               >
 
