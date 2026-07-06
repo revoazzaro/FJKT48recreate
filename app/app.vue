@@ -16,7 +16,7 @@ useSeoMeta({
 <template>
   <div>
     <Navbar />
-    <NuxtPage :keepalive="true" />
+    <NuxtPage />
   </div>
 </template>
 

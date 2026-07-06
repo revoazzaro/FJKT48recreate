@@ -2,15 +2,18 @@
 import Hls from "hls.js";
 
 const route = useRoute();
-const platformParam = route.params.platform; // 'idn' atau 'showroom'
+const platformParam = route.params.platform;
 const usernameParam = route.params.username.toString().toLowerCase();
 
 const videoRef = ref(null);
 let hlsInstance = null;
 
+const chats = ref([]);
+const chatContainerRef = ref(null);
+let chatWs = null;
+
 const { data: liveData, pending } = await useFetch("/api/idn-live");
 
-// Cari data member yang sesuai berdasarkan parameter username di URL
 const currentLive = computed(() => {
   if (!liveData.value?.data) return null;
   return liveData.value.data.find(
@@ -20,38 +23,79 @@ const currentLive = computed(() => {
   );
 });
 
-// Fungsi untuk menyalakan mesin HLS Player
 const initPlayer = () => {
   if (!videoRef.value || !currentLive.value?.stream_url) return;
 
   const video = videoRef.value;
   const streamUrl = currentLive.value.stream_url;
 
-  // Jika browser mendukung HLS secara native (seperti Safari)
   if (video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = streamUrl;
   }
-  // Jika browser umum (Chrome, Firefox, Edge) menggunakan hls.js
   else if (Hls.isSupported()) {
-    if (hlsInstance) hlsInstance.destroy(); // Bersihkan instance lama jika ada
+    if (hlsInstance) hlsInstance.destroy();
 
     hlsInstance = new Hls({
-      maxMaxBufferLength: 10, // Optimasi low-latency untuk live streaming
+      maxMaxBufferLength: 10,
     });
     hlsInstance.loadSource(streamUrl);
     hlsInstance.attachMedia(video);
   }
 };
+const initChat = () => {
+  if (process.server || !currentLive.value || platformParam !== "idn") return;
 
-// Jalankan player hanya ketika komponen sudah terpasang di client-side (OnMounted)
+  if (chatWs) chatWs.close();
+
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const wsUrl = `${protocol}//${window.location.host}/api/livechat?slug=${currentLive.value.slug}&username=${usernameParam}`;
+
+  chatWs = new WebSocket(wsUrl);
+
+  chatWs.onmessage = (event) => {
+    try {
+      const cleanComment = JSON.parse(event.data);
+      chats.value.push(cleanComment);
+
+      if (chats.value.length > 70) {
+        chats.value.shift();
+      }
+
+      nextTick(() => {
+        if (chatContainerRef.value) {
+          chatContainerRef.value.scrollTop =
+            chatContainerRef.value.scrollHeight;
+        }
+      });
+    } catch (err) {
+    }
+  };
+
+  chatWs.onerror = (err) => {
+    console.error("[WS CLIENT ERROR] Gagal tersambung ke proxy chat:", err);
+  };
+};
+
+watch(
+  currentLive,
+  (newVal) => {
+    if (newVal?.slug) {
+      initChat();
+    }
+  },
+  { immediate: true },
+);
+
 onMounted(() => {
   initPlayer();
 });
 
-// Bersihkan memory player jika user keluar dari halaman room agar laptop tidak berat
 onUnmounted(() => {
   if (hlsInstance) {
     hlsInstance.destroy();
+  }
+  if (chatWs) {
+    chatWs.close();
   }
 });
 
@@ -142,16 +186,16 @@ const otherLives = computed(() => {
 
           <div class="flex flex-col gap-5 px-6 lg:px-0">
             <div class="flex flex-col mt-1">
-              <h1 class="text-2xl font-bold mt-4 line-clamp-2">
+              <h1 class="text-xl md:text-2xl font-bold mt-4 line-clamp-2">
                 {{ currentLive.title }}
               </h1>
 
               <div class="flex items-center gap-1.5 mt-2">
-                <p class="text-base font-medium text-neutral-600">
+                <p class="text-sm md:text-base font-medium text-neutral-600">
                   {{ currentLive.view_count }} Penonton
                 </p>
                 -
-                <p class="text-base font-medium text-neutral-600">
+                <p class="text-sm md:text-base font-medium text-neutral-600">
                   {{ formatRelativeTime(currentLive.live_at) }}
                 </p>
               </div>
@@ -189,91 +233,130 @@ const otherLives = computed(() => {
         </div>
       </div>
 
-      <div class="lg:col-span-1 px-6 lg:px-0">
-        <div>
-          <!-- Judul Section -->
-          <h1
-            class="font-bold text-lg lg:text-xl text-neutral-400 border-b border-neutral-800 pb-2 mb-4"
-          >
-            Live lainnya
-          </h1>
-
-          <div
-            v-if="otherLives.length > 0"
-            class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-6"
-          >
-            <NuxtLink
-              v-for="live in otherLives"
-              :key="live.user.id"
-              :to="`/live/${live.platform}/${live.user.username.toLowerCase()}`"
-              class="group block bg-white rounded-xl shadow-sm hover:shadow-xl overflow-hidden md:hover:ring-2 md:hover:ring-primary transition-all duration-200"
-            >
-              <div class="relative bg-white">
-                <img
-                  :src="live.image"
-                  alt="Live Thumbnail"
-                  class="w-full h-full object-cover"
-                />
-
-                <span
-                  class="absolute top-2 left-2 bg-primary text-white text-xs font-semibold px-2 py-0.5 rounded shadow"
-                >
-                  LIVE
-                </span>
-                <span
-                  class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded backdrop-blur"
-                >
-                  {{ live.view_count }} Penonton
-                </span>
-                <span
-                  class="absolute top-2 right-2 bg-secondary text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase"
-                >
-                  {{ live.platform }}
-                </span>
-              </div>
-
-              <div class="px-2 py-4 flex gap-2 rounded-b-xl">
-                <img
-                  :src="live.user.avatar"
-                  alt="Avatar"
-                  class="w-10 h-10 rounded-full border border-neutral-750 object-cover"
-                />
-                <div class="overflow-hidden">
-                  <h3
-                    class="font-semibold text-base text-black line-clamp-1 group-hover:text-primary transition"
-                  >
-                    {{ live.title || "-" }}
-                  </h3>
-                  <p class="text-sm text-neutral-400 line-clamp-1 font-medium">
-                    {{ live.user.name }}
-                  </p>
-                </div>
-              </div>
-            </NuxtLink>
-          </div>
-
-          <div
-            v-else
-            class="text-center py-12 border border-dashed border-neutral-800 rounded-xl"
-          >
-            <p class="text-sm text-neutral-500 font-medium">
-              Sedang tidak ada siaran live lainnya saat ini.
-            </p>
-          </div>
-        </div>
-        <!-- <div
-          class="bg-white border border-neutral-900 p-4 rounded-xl h-[400px] lg:h-[500px] flex flex-col justify-between"
+      <div class="lg:col-span-1 px-4 lg:px-0">
+        <div
+          v-if="platformParam === 'idn' && currentLive"
+          class="bg-white border border-neutral-200 p-4 rounded-xl h-[400px] lg:h-[500px] flex flex-col shadow-sm"
         >
           <p
-            class="text-sm font-bold text-neutral-400 border-b border-neutral-800 pb-2"
+            class="text-sm font-bold text-neutral-800 pb-2 mb-3 flex items-center gap-2"
           >
-            Comment
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            Live Chat
           </p>
-          <div class="text-center text-xs text-neutral-600 my-auto">
-            Fitur Live Chat atau Informasi Teater dapat disematkan di kolom
-            kanan ini di masa mendatang.
+
+          <div
+            ref="chatContainerRef"
+            class="flex-1 overflow-y-auto space-y-3 pr-1 text-sm scroll-smooth"
+          >
+            <div
+              v-if="chats.length === 0"
+              class="text-center text-xs text-neutral-400 my-auto py-24"
+            >
+              Menghubungkan ke live chat member...
+            </div>
+
+            <div
+              v-for="chat in chats"
+              :key="chat.chat_id"
+              class="flex items-start gap-2 p-1 rounded hover:bg-neutral-50 transition-colors"
+            >
+              <img
+                :src="chat.user.avatar || 'https://jkt48.com/logo-red.png'"
+                class="w-10 h-10 rounded-full object-cover border border-neutral-100"
+                alt="Avatar"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1 flex-wrap">
+                  <span
+                    class="font-bold text-neutral-800 text-sm truncate max-w-[140px]"
+                  >
+                    {{ chat.user.name }}
+                  </span>
+                  <!-- <span 
+                    v-if="chat.user.level_tier" 
+                    class="text-[9px] px-1 bg-amber-100 text-amber-700 font-bold rounded scale-90 origin-left"
+                  >
+                    Lv.{{ chat.user.level_tier }}
+                  </span> -->
+                </div>
+                <p class="text-neutral-600 text-sm break-words leading-relaxed">
+                  {{ chat.message }}
+                </p>
+              </div>
+            </div>
           </div>
-        </div> -->
+        </div>
+      </div>
+    </div>
+    <div class="px-4 lg:px-6 mt-8">
+      <h1
+        class="font-bold text-lg lg:text-xl text-neutral-400 border-b border-neutral-800 pb-2 mb-4"
+      >
+        Live lainnya
+      </h1>
+
+      <div
+        v-if="otherLives.length > 0"
+        class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-6"
+      >
+        <NuxtLink
+          v-for="live in otherLives"
+          :key="live.user.id"
+          :to="`/live/${live.platform}/${live.user.username.toLowerCase()}`"
+          class="group block bg-white rounded-xl shadow-sm hover:shadow-xl overflow-hidden md:hover:ring-2 md:hover:ring-primary transition-all duration-200"
+        >
+          <div class="relative bg-white">
+            <img
+              :src="live.image"
+              alt="Live Thumbnail"
+              class="w-full h-full object-cover"
+            />
+
+            <span
+              class="absolute top-2 left-2 bg-primary text-white text-xs font-semibold px-2 py-0.5 rounded shadow"
+            >
+              LIVE
+            </span>
+            <span
+              class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded backdrop-blur"
+            >
+              {{ live.view_count }} Penonton
+            </span>
+            <span
+              class="absolute top-2 right-2 bg-secondary text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase"
+            >
+              {{ live.platform }}
+            </span>
+          </div>
+
+          <div class="px-2 py-4 flex gap-2 rounded-b-xl">
+            <img
+              :src="live.user.avatar"
+              alt="Avatar"
+              class="w-10 h-10 rounded-full border border-neutral-750 object-cover"
+            />
+            <div class="overflow-hidden">
+              <h3
+                class="font-semibold text-base text-black line-clamp-1 group-hover:text-primary transition"
+              >
+                {{ live.title || "-" }}
+              </h3>
+              <p class="text-sm text-neutral-400 line-clamp-1 font-medium">
+                {{ live.user.name }}
+              </p>
+            </div>
+          </div>
+        </NuxtLink>
+      </div>
+
+      <div
+        v-else
+        class="text-center py-12 border border-dashed border-neutral-800 rounded-xl"
+      >
+        <p class="text-sm text-neutral-500 font-medium">
+          Sedang tidak ada siaran live lain yang berlangsung.
+        </p>
       </div>
     </div>
   </div>
