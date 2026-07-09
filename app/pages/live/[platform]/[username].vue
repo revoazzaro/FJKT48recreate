@@ -298,7 +298,7 @@ const otherLives = computed(() => {
 
       <div
         v-if="otherLives.length > 0"
-        class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 gap-6"
+        class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
       >
         <NuxtLink
           v-for="live in otherLives"
