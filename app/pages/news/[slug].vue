@@ -45,13 +45,15 @@ const goBack = () => {
             {{ berita.data.result.title }}
           </h1>
           <div class="flex flex-col gap-2 mb-3">
-            <NuxtImg
-              v-if="berita?.data?.result?.background_image"
-              :src="
-                'https://wsrv.nl/?url=' + berita.data.result.background_image
-              "
-              class="w-full h-full object-cover rounded-3xl md:mb-1"
-            />
+            <div class="flex justify-center">
+              <NuxtImg
+                v-if="berita?.data?.result?.background_image"
+                :src="
+                  'https://wsrv.nl/?url=' + berita.data.result.background_image
+                "
+                class="w-full h-full md:w-[65%] md:h-[65%] object-cover md:mb-1"
+              />
+            </div>
             <div class="flex items-center gap-1">
               <p
                 class="text-xs md:text-sm text-black-light font-medium bg-secondary px-2 py-1 rounded-full"

@@ -460,9 +460,9 @@ const filteredSessions = computed(() => {
                     </p>
                     <p class="text-slate-600 ml-2 text-base lg:text-lg">
                       {{ formatDate(sales.start_date) }},
-                      {{ formatTime(sales.start_date) }} WIB -
+                      {{ formatTime(sales.start_date) }} -
                       {{ formatDate(sales.end_date) }},
-                      {{ formatTime(sales.end_date) }} WIB
+                      {{ formatTime(sales.end_date) }}
                     </p>
                     <div
                       v-for="salesPricing in sales.pricing"

@@ -12,6 +12,10 @@ const typeSchedule = [
     id: "EVENT",
     label: "Event",
   },
+  {
+    id: "EXCLUSIVE",
+    label: "Exclusive",
+  },
 ];
 
 const route = useRoute();
