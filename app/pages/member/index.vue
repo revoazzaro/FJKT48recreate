@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 
+const route = useRoute();
+const router = useRouter();
+
 onMounted(() => {
   const observer = new IntersectionObserver(
     (entries) => {
@@ -63,7 +66,24 @@ const tabs = [
   },
 ];
 
-const activeType = ref("All");
+const activeType = ref(route.query.type || "All");
+
+const changeType = (typeId: string) => {
+  activeType.value = typeId;
+  router.push({
+    query: {
+      ...route.query,
+      type: typeId === "All" ? undefined : typeId,
+    },
+  });
+}
+
+watch(
+  () => route.query.type,
+  (newType) => {
+    activeType.value = newType || "All";
+  },
+);
 
 const filteredMembers = computed(() => {
   if (activeType.value === "All") {
@@ -89,11 +109,11 @@ const dailyVersion = new Date().toISOString().split("T")[0];
         <div
           v-for="tab in tabs"
           :key="tab.id"
-          @click="activeType = tab.id"
+          @click="changeType(tab.id)"
           :class="[
             'py-2 px-7 rounded-full cursor-pointer border border-primary transition-colors duration-150 text-sm md:text-base',
             activeType === tab.id
-              ? `bg-primary border-primary text-white ${tab.label === 'Dream' ? 'bg-dream border-dream' : ''}`
+              ? 'bg-primary border-primary text-white'
               : 'bg-white hover:bg-primary hover:text-white text-primary',
           ]"
         >
