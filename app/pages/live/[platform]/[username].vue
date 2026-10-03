@@ -12,11 +12,27 @@ const chats = ref([]);
 const chatContainerRef = ref(null);
 let chatWs = null;
 
-const { data: liveData, pending } = await useFetch("/api/idn-live");
+// Timer interval khusus polling Showroom Chat
+let showroomPollInterval = null;
+
+const { data: idnLiveData, pending: idnLivePending } =
+  await useFetch("/api/idn-live");
+const { data: showroomLiveData, pending: showroomLivePending } =
+  await useFetch("/api/showroom-live");
+
+const liveData = computed(() => {
+  const idnData = idnLiveData.value?.data || [];
+  const showroomData = showroomLiveData.value?.data || [];
+  return [...idnData, ...showroomData];
+});
+
+const pending = computed(
+  () => idnLivePending.value || showroomLivePending.value,
+);
 
 const currentLive = computed(() => {
-  if (!liveData.value?.data) return null;
-  return liveData.value.data.find(
+  if (!liveData.value) return null;
+  return liveData.value.find(
     (item) =>
       item.user.username.toLowerCase() === usernameParam &&
       item.platform === platformParam,
@@ -31,8 +47,7 @@ const initPlayer = () => {
 
   if (video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = streamUrl;
-  }
-  else if (Hls.isSupported()) {
+  } else if (Hls.isSupported()) {
     if (hlsInstance) hlsInstance.destroy();
 
     hlsInstance = new Hls({
@@ -42,10 +57,27 @@ const initPlayer = () => {
     hlsInstance.attachMedia(video);
   }
 };
-const initChat = () => {
-  if (process.server || !currentLive.value || platformParam !== "idn") return;
 
-  if (chatWs) chatWs.close();
+// --------------------------------------------------
+// LOGIKA HABISKAN BERSAMA (CLEANUP CHAT)
+// --------------------------------------------------
+const clearChatConnection = () => {
+  if (chatWs) {
+    chatWs.close();
+    chatWs = null;
+  }
+  if (showroomPollInterval) {
+    clearInterval(showroomPollInterval);
+    showroomPollInterval = null;
+  }
+  chats.value = [];
+};
+
+// --------------------------------------------------
+// LOGIKA CHAT IDN LIVE (WEBSOCKET)
+// --------------------------------------------------
+const initIdnChat = () => {
+  if (process.server || !currentLive.value) return;
 
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const wsUrl = `${protocol}//${window.location.host}/api/livechat?slug=${currentLive.value.slug}&username=${usernameParam}`;
@@ -61,14 +93,8 @@ const initChat = () => {
         chats.value.shift();
       }
 
-      nextTick(() => {
-        if (chatContainerRef.value) {
-          chatContainerRef.value.scrollTop =
-            chatContainerRef.value.scrollHeight;
-        }
-      });
-    } catch (err) {
-    }
+      scrollToBottom();
+    } catch (err) {}
   };
 
   chatWs.onerror = (err) => {
@@ -76,10 +102,71 @@ const initChat = () => {
   };
 };
 
+// --------------------------------------------------
+// LOGIKA CHAT SHOWROOM (POLLING REST API)
+// --------------------------------------------------
+const fetchShowroomChat = async () => {
+  if (!currentLive.value) return;
+
+  // room_id Showroom diambil dari user.id (contoh: "270200")
+  const roomId = currentLive.value.user?.id || currentLive.value.slug;
+  if (!roomId) return;
+
+  try {
+    const res = await $fetch(`/api/showroomlivechat?room_id=${roomId}`);
+
+    if (res?.status && Array.isArray(res.comments)) {
+      // Mapping format data Showroom agar identik dengan struktur template IDN
+      chats.value = [...res.comments].reverse().map((item, index) => ({
+        chat_id: item.comment_id || `${item.created_at}-${index}`,
+        user: {
+          name: item.name || "Anonim",
+          avatar: item.avatar_id
+            ? `https://image.showroom-live.com/showroom-prod/image/avatar/${item.avatar_id}.png`
+            : "https://jkt48.com/logo-red.png",
+        },
+        message: item.comment,
+      }));
+
+      scrollToBottom();
+    }
+  } catch (err) {
+    console.error("[SHOWROOM CHAT ERROR] Gagal mengambil chat:", err);
+  }
+};
+
+const initShowroomChat = () => {
+  if (process.server || !currentLive.value) return;
+
+  fetchShowroomChat();
+  // Polling setiap 3 detik
+  showroomPollInterval = setInterval(fetchShowroomChat, 3000);
+};
+
+// Helper scroll otomatis
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatContainerRef.value) {
+      chatContainerRef.value.scrollTop = chatContainerRef.value.scrollHeight;
+    }
+  });
+};
+
+// Pengatur inisialisasi chat berdasarkan platform
+const initChat = () => {
+  clearChatConnection();
+
+  if (platformParam === "idn") {
+    initIdnChat();
+  } else if (platformParam === "showroom") {
+    initShowroomChat();
+  }
+};
+
 watch(
   currentLive,
   (newVal) => {
-    if (newVal?.slug) {
+    if (newVal) {
       initChat();
     }
   },
@@ -94,9 +181,7 @@ onUnmounted(() => {
   if (hlsInstance) {
     hlsInstance.destroy();
   }
-  if (chatWs) {
-    chatWs.close();
-  }
+  clearChatConnection();
 });
 
 const formatRelativeTime = (isoString) => {
@@ -122,24 +207,35 @@ const formatRelativeTime = (isoString) => {
   }
 };
 
-const IDNLiveLink = computed(() => {
+const externalLiveLink = computed(() => {
   if (!currentLive.value) return "#";
 
   const username = currentLive.value.user?.username;
   const slug = currentLive.value.slug;
 
+  if (platformParam === "showroom") {
+    return `https://www.showroom-live.com/r/${slug}`;
+  }
+
+  // Tautan resmi menuju aplikasi IDN Live
   return `https://idn.app/${username}/live/${slug}`;
 });
 
 const otherLives = computed(() => {
-  if (!liveData.value?.data) return [];
+  if (!liveData.value) return [];
 
   const currentUsername = route.params.username?.toString().toLowerCase();
 
-  return liveData.value.data.filter(
+  return liveData.value.filter(
     (live) => live.user.username.toLowerCase() !== currentUsername,
   );
 });
+
+const getPlatformBadgeColor = (platform) => {
+  return platform === "showroom"
+    ? "bg-[#0052CC] text-white" // Warna khas Showroom (Biru)
+    : "bg-primary text-white"; // Warna khas IDN Live (Merah)
+};
 </script>
 
 <template>
@@ -221,10 +317,10 @@ const otherLives = computed(() => {
               </div>
 
               <a
-                :href="IDNLiveLink"
+                :href="externalLiveLink"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="bg-primary text-white text-base lg:text-lg font-bold px-2.5 py-1 rounded-md tracking-wider uppercase"
+                :class="`text-white text-base lg:text-lg font-bold px-2.5 py-1 rounded-md tracking-wider uppercase ${getPlatformBadgeColor(currentLive.platform)}`"
               >
                 {{ currentLive.platform }}
               </a>
@@ -235,14 +331,14 @@ const otherLives = computed(() => {
 
       <div class="lg:col-span-1 px-4 lg:px-0">
         <div
-          v-if="platformParam === 'idn' && currentLive"
+          v-if="currentLive"
           class="bg-white border border-neutral-200 p-4 rounded-xl h-[400px] lg:h-[500px] flex flex-col shadow-sm"
         >
           <p
             class="text-sm font-bold text-neutral-800 pb-2 mb-3 flex items-center gap-2"
           >
             <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            Live Chat
+            Live Chat {{ platformParam === "showroom" ? "Showroom" : "IDN" }}
           </p>
 
           <div
@@ -262,7 +358,7 @@ const otherLives = computed(() => {
               class="flex items-start gap-2 p-1 rounded hover:bg-neutral-50 transition-colors"
             >
               <img
-                :src="chat.user.avatar || 'https://jkt48.com/logo-red.png'"
+                :src="chat.user.avatar"
                 class="w-10 h-10 rounded-full object-cover border border-neutral-100"
                 alt="Avatar"
               />
@@ -273,12 +369,6 @@ const otherLives = computed(() => {
                   >
                     {{ chat.user.name }}
                   </span>
-                  <!-- <span 
-                    v-if="chat.user.level_tier" 
-                    class="text-[9px] px-1 bg-amber-100 text-amber-700 font-bold rounded scale-90 origin-left"
-                  >
-                    Lv.{{ chat.user.level_tier }}
-                  </span> -->
                 </div>
                 <p class="text-neutral-600 text-sm break-words leading-relaxed">
                   {{ chat.message }}
@@ -324,7 +414,10 @@ const otherLives = computed(() => {
               {{ live.view_count }} Penonton
             </span>
             <span
-              class="absolute top-2 right-2 bg-secondary text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase"
+              :class="[
+                'absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase',
+                getPlatformBadgeColor(live.platform),
+              ]"
             >
               {{ live.platform }}
             </span>
