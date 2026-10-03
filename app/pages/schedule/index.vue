@@ -373,7 +373,7 @@ const getTypeClass = (type) => {
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         <NuxtLink
-          v-for="item in [...filteredSchedule.data].sort((a, b) => `${a.date} ${a.start_time}`.localeCompare(`${b.date} ${b.start_time}`))"
+          v-for="item in [...(filteredSchedule?.data || filteredSchedule || [])].sort((a, b) => new Date(`${b.date}T${b.start_time || '00:00:00'}`).getTime() - new Date(`${a.date}T${a.start_time || '00:00:00'}`).getTime())"
           :key="item.schedule_id"
           :to="{
             path: `/schedule/${item.reference_code || item.link}`,
@@ -385,14 +385,14 @@ const getTypeClass = (type) => {
             <div class="flex flex-col items-center justify-center p-2">
               <p class="text-sm uppercase font-bold text-gray-400">
                 {{
-                  new Date(`${item.date}T00:00:00`).toLocaleDateString("id-ID", {
+                  new Date(item.date).toLocaleDateString("id-ID", {
                     month: "short",
                   })
                 }}
               </p>
               <p class="text-2xl font-black text-primary leading-none">
                 {{
-                  new Date(`${item.date}T00:00:00`).toLocaleDateString("id-ID", {
+                  new Date(item.date).toLocaleDateString("id-ID", {
                     day: "2-digit",
                   })
                 }}
