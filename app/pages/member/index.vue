@@ -60,10 +60,6 @@ const tabs = [
     id: "TRAINEE",
     label: "Trainee",
   },
-  {
-    id: "JKT48_VIRTUAL",
-    label: "JKT48V",
-  },
 ];
 
 const activeType = ref(route.query.type || "All");
