@@ -287,19 +287,16 @@ const filteredSessions = computed(() => {
                         </div>
 
                         <div
-                          v-if="lane.available_quota === 0"
+                          v-if="lane.quota_available === false"
                           class="text-xs font-black bg-red-100 text-red-600 px-2 py-1 rounded-md"
                         >
                           HABIS
                         </div>
                         <div
                           v-else
-                          class="text-xs md:text-sm font-bold text-slate-400"
+                          class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-md"
                         >
-                          Sisa: 
-                          <span class="text-slate-800">{{
-                            lane.available_quota
-                          }}</span>
+                          TERSEDIA
                         </div>
                       </div>
                     </div>
@@ -467,11 +464,7 @@ const filteredSessions = computed(() => {
                     <div
                       v-for="salesPricing in sales.pricing"
                       :key="salesPricing.label"
-                      class="flex gap-2 ml-2"
-                    >
-                      <p class="text-black-light text-base lg:text-lg/5">
-                        Kuota Tiket: {{ salesPricing.quota }}
-                      </p>
+                      class="flex gap-2 ml-2">
                     </div>
                   </div>
                 </div>
