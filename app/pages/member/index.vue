@@ -45,16 +45,16 @@ const tabs = [
     label: "Semua",
   },
   {
+    id: "LOVE",
+    label: "Love",
+  },
+  {
     id: "DREAM",
     label: "Dream",
   },
   {
     id: "PASSION",
     label: "Passion",
-  },
-  {
-    id: "LOVE",
-    label: "Love",
   },
   {
     id: "TRAINEE",
