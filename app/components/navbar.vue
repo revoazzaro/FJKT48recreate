@@ -129,6 +129,14 @@ onUnmounted(() => {
                 >Live</NuxtLink
               >
 
+              <NuxtLink
+                @click="closeSidebar"
+                to="/songs"
+                class=""
+                exact-active-class="text-primary font-semibold"
+                >Songs</NuxtLink
+              >
+
               <!-- <div class="mt-4 pt-6 border-t border-gray-200 flex gap-4">
                 <button @click="setLocale('id')" class="text-xs">ID</button>
                 <button @click="setLocale('jp')" class="text-xs">JP</button>
@@ -230,6 +238,22 @@ onUnmounted(() => {
                 pathHome ? 'hover:text-white' : 'hover:text-primary',
               ]"
               >Live
+              <span
+                :class="[
+                  'absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-500 group-hover:w-full',
+                  pathHome ? 'bg-white' : 'bg-primary',
+                ]"
+              ></span>
+            </NuxtLink>
+          </li>
+          <li>
+            <NuxtLink
+              to="/songs"
+              :class="[
+                'relative cursor-pointer group transition-colors pb-1',
+                pathHome ? 'hover:text-white' : 'hover:text-primary',
+              ]"
+              >Songs
               <span
                 :class="[
                   'absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-500 group-hover:w-full',
