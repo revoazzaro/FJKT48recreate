@@ -241,7 +241,7 @@ const getPlatformBadgeColor = (platform) => {
 <template>
   <div class="pt-16 pb-8 bg-[#FAFAFA] min-h-screen">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:pt-5 lg:px-6">
-      <div class="lg:col-span-2">
+      <div :class="[currentLive.platform === 'showroom' ? 'lg:col-span-2' : 'lg:col-span-1']">
         <div
           v-if="pending"
           class="aspect-video bg-neutral-900 rounded-xl flex items-center justify-center text-neutral-400"
@@ -269,7 +269,8 @@ const getPlatformBadgeColor = (platform) => {
 
         <div v-else class="">
           <div
-            class="bg-black overflow-hidden aspect-auto shadow-2xl border border-neutral-900 relative group lg:rounded-lg"
+          v-if="currentLive.platform === 'showroom'"  
+          class="bg-black overflow-hidden aspect-auto shadow-2xl border border-neutral-900 relative group lg:rounded-lg"
           >
             <video
               ref="videoRef"
@@ -320,7 +321,7 @@ const getPlatformBadgeColor = (platform) => {
                 :href="externalLiveLink"
                 target="_blank"
                 rel="noopener noreferrer"
-                :class="`text-white text-base lg:text-lg font-bold px-2.5 py-1 rounded-md tracking-wider uppercase ${getPlatformBadgeColor(currentLive.platform)}`"
+                :class="`text-white text-sm lg:text-base font-bold px-2.5 py-1 rounded-md tracking-wider uppercase ${getPlatformBadgeColor(currentLive.platform)}`"
               >
                 {{ currentLive.platform }}
               </a>
@@ -329,7 +330,7 @@ const getPlatformBadgeColor = (platform) => {
         </div>
       </div>
 
-      <div class="lg:col-span-1 px-4 lg:px-0">
+      <div :class="['px-4 lg:px-0', currentLive.platform === 'showroom' ? 'lg:col-span-1' : 'lg:col-span-2']">
         <div
           v-if="currentLive"
           class="bg-white border border-neutral-200 p-4 rounded-xl h-[400px] lg:h-[500px] flex flex-col shadow-sm"
@@ -388,7 +389,7 @@ const getPlatformBadgeColor = (platform) => {
 
       <div
         v-if="otherLives.length > 0"
-        class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"
+        class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 items-start"
       >
         <NuxtLink
           v-for="live in otherLives"
