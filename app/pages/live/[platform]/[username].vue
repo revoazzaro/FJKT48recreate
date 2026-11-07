@@ -12,7 +12,6 @@ const chats = ref([]);
 const chatContainerRef = ref(null);
 let chatWs = null;
 
-// Timer interval khusus polling Showroom Chat
 let showroomPollInterval = null;
 
 const { data: idnLiveData, pending: idnLivePending } =
@@ -58,9 +57,6 @@ const initPlayer = () => {
   }
 };
 
-// --------------------------------------------------
-// LOGIKA HABISKAN BERSAMA (CLEANUP CHAT)
-// --------------------------------------------------
 const clearChatConnection = () => {
   if (chatWs) {
     chatWs.close();
@@ -73,9 +69,6 @@ const clearChatConnection = () => {
   chats.value = [];
 };
 
-// --------------------------------------------------
-// LOGIKA CHAT IDN LIVE (WEBSOCKET)
-// --------------------------------------------------
 const initIdnChat = () => {
   if (process.server || !currentLive.value) return;
 
@@ -102,13 +95,9 @@ const initIdnChat = () => {
   };
 };
 
-// --------------------------------------------------
-// LOGIKA CHAT SHOWROOM (POLLING REST API)
-// --------------------------------------------------
 const fetchShowroomChat = async () => {
   if (!currentLive.value) return;
 
-  // room_id Showroom diambil dari user.id (contoh: "270200")
   const roomId = currentLive.value.user?.id || currentLive.value.slug;
   if (!roomId) return;
 
@@ -116,14 +105,11 @@ const fetchShowroomChat = async () => {
     const res = await $fetch(`/api/showroomlivechat?room_id=${roomId}`);
 
     if (res?.status && Array.isArray(res.comments)) {
-      // Mapping format data Showroom agar identik dengan struktur template IDN
       chats.value = [...res.comments].reverse().map((item, index) => ({
         chat_id: item.comment_id || `${item.created_at}-${index}`,
         user: {
           name: item.name || "Anonim",
-          avatar: item.avatar_id
-            ? `https://image.showroom-live.com/showroom-prod/image/avatar/${item.avatar_id}.png`
-            : "https://jkt48.com/logo-red.png",
+          avatar: item.avatar_url,
         },
         message: item.comment,
       }));
@@ -139,11 +125,9 @@ const initShowroomChat = () => {
   if (process.server || !currentLive.value) return;
 
   fetchShowroomChat();
-  // Polling setiap 3 detik
   showroomPollInterval = setInterval(fetchShowroomChat, 3000);
 };
 
-// Helper scroll otomatis
 const scrollToBottom = () => {
   nextTick(() => {
     if (chatContainerRef.value) {
@@ -152,7 +136,6 @@ const scrollToBottom = () => {
   });
 };
 
-// Pengatur inisialisasi chat berdasarkan platform
 const initChat = () => {
   clearChatConnection();
 
@@ -217,7 +200,6 @@ const externalLiveLink = computed(() => {
     return `https://www.showroom-live.com/r/${slug}`;
   }
 
-  // Tautan resmi menuju aplikasi IDN Live
   return `https://idn.app/${username}/live/${slug}`;
 });
 
@@ -233,15 +215,23 @@ const otherLives = computed(() => {
 
 const getPlatformBadgeColor = (platform) => {
   return platform === "showroom"
-    ? "bg-[#0052CC] text-white" // Warna khas Showroom (Biru)
-    : "bg-primary text-white"; // Warna khas IDN Live (Merah)
+    ? "bg-[#0052CC] text-white"
+    : "bg-primary text-white";
 };
 </script>
 
 <template>
   <div class="pt-16 pb-8 bg-[#FAFAFA] min-h-screen">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:pt-5 lg:px-6">
-      <div :class="[currentLive.platform === 'showroom' ? 'lg:col-span-2' : 'lg:col-span-1']">
+    <div
+      class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-3 px-3 lg:pt-5 lg:px-6"
+    >
+      <div
+        :class="[
+          currentLive.platform === 'showroom'
+            ? 'lg:col-span-2'
+            : 'lg:col-span-1',
+        ]"
+      >
         <div
           v-if="pending"
           class="aspect-video bg-neutral-900 rounded-xl flex items-center justify-center text-neutral-400"
@@ -269,8 +259,8 @@ const getPlatformBadgeColor = (platform) => {
 
         <div v-else class="">
           <div
-          v-if="currentLive.platform === 'showroom'"  
-          class="bg-black overflow-hidden aspect-auto shadow-2xl border border-neutral-900 relative group lg:rounded-lg"
+            v-if="currentLive.platform === 'showroom'"
+            class="bg-black overflow-hidden aspect-auto shadow-2xl border border-neutral-900 relative group rounded-lg"
           >
             <video
               ref="videoRef"
@@ -330,7 +320,14 @@ const getPlatformBadgeColor = (platform) => {
         </div>
       </div>
 
-      <div :class="['px-4 lg:px-0', currentLive.platform === 'showroom' ? 'lg:col-span-1' : 'lg:col-span-2']">
+      <div
+        :class="[
+          'px-4 lg:px-0',
+          currentLive.platform === 'showroom'
+            ? 'lg:col-span-1'
+            : 'lg:col-span-2',
+        ]"
+      >
         <div
           v-if="currentLive"
           class="bg-white border border-neutral-200 p-4 rounded-xl h-[400px] lg:h-[500px] flex flex-col shadow-sm"
