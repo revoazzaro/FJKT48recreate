@@ -7,9 +7,10 @@
       playsinline
       preload="auto"
       class="w-full object-cover h-screen"
+      poster="/Ayo_Senyumlah.png"
     >
-      <!-- <source src="https://res.cloudinary.com/dlydxsbfj/video/upload/f_auto/v1780757032/home_video_mobile_plq1he.mp4" type="video/mp4" /> -->
-      <source src="/home_video.mp4" type="video/mp4"/>
+      <source src="https://res.cloudinary.com/daxdlio4e/video/upload/f_auto,q_auto:eco/v1794227071/home_video_Ayo_Senyumlah_mqoim6.mp4" type="video/mp4" />
+      <!-- <source src="/home_video_Ayo_Senyumlah.mp4" type="video/mp4"/> -->
     </video>
   </div>
 </template>
