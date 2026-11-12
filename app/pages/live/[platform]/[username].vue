@@ -223,15 +223,9 @@ const getPlatformBadgeColor = (platform) => {
 <template>
   <div class="pt-16 pb-8 bg-[#FAFAFA] min-h-screen">
     <div
-      class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-3 px-3 lg:pt-5 lg:px-6"
+      class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-3 px-3 lg:pt-8 lg:px-6"
     >
-      <div
-        :class="[
-          currentLive.platform === 'showroom'
-            ? 'lg:col-span-2'
-            : 'lg:col-span-1',
-        ]"
-      >
+      <div class="lg:col-span-2">
         <div
           v-if="pending"
           class="aspect-video bg-neutral-900 rounded-xl flex items-center justify-center text-neutral-400"
@@ -259,9 +253,28 @@ const getPlatformBadgeColor = (platform) => {
 
         <div v-else class="">
           <div
-            v-if="currentLive.platform === 'showroom'"
-            class="bg-black overflow-hidden aspect-auto shadow-2xl border border-neutral-900 relative group rounded-lg"
+            class="bg-black aspect-video overflow-hidden shadow-2xl border border-neutral-900 relative group rounded-lg"
           >
+            <div
+              v-if="currentLive.platform === 'idn'"
+              class="aspect-video bg-neutral-900 rounded-xl flex flex-col items-center justify-center text-center p-6 border border-neutral-900"
+            >
+              <p class="text-xl font-bold text-neutral-400">
+                Silahkan menonton melalui IDN App secara langsung.
+              </p>
+              <p class="text-sm text-neutral-600">
+                Anda dapat klik tombol di bawah untuk membuka siaran langsung di
+                aplikasi IDN.
+              </p>
+              <a
+                :href="externalLiveLink"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-4 text-white bg-primary hover:bg-red-700 text-sm font-semibold px-4 py-2 rounded-lg transition"
+              >
+                IDN App
+              </a>
+            </div>
             <video
               ref="videoRef"
               controls
@@ -320,14 +333,7 @@ const getPlatformBadgeColor = (platform) => {
         </div>
       </div>
 
-      <div
-        :class="[
-          'px-4 lg:px-0',
-          currentLive.platform === 'showroom'
-            ? 'lg:col-span-1'
-            : 'lg:col-span-2',
-        ]"
-      >
+      <div class="px-4 lg:px-0 lg:col-span-1">
         <div
           v-if="currentLive"
           class="bg-white border border-neutral-200 p-4 rounded-xl h-[400px] lg:h-[500px] flex flex-col shadow-sm"
