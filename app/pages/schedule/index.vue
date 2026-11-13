@@ -428,7 +428,6 @@ const getTypeClass = (type) => {
                 {{ item.title }}
               </p>
               <div
-                v-if="item.start_time"
                 class="flex gap-1 items-center font-medium"
               >
                 <Icon
@@ -436,12 +435,10 @@ const getTypeClass = (type) => {
                   class="text-gray-500 text-sm"
                 />
                 <p class="text-xs text-gray-500">
+                  {{ item.date?.toLocaleDateString("id-ID", { weekday: "long" }) }}, 
                   {{ item.start_time?.split(":").slice(0, 2).join(":") }} -
                   {{ item.end_time?.split(":").slice(0, 2).join(":") }} WIB
                 </p>
-                <!-- <p class="text-sm text-gray-500">
-                  {{ item.end_time?.split(":").slice(0, 2).join(":") }}
-                </p> -->
               </div>
             </div>
           </div>
