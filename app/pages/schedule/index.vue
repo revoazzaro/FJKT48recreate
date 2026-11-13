@@ -450,7 +450,7 @@ const getTypeClass = (type) => {
                           weekday: "long",
                         },
                       )
-                    }}{{ item.start_time ? "," : "" }}
+                    }}{{ item.start_time ? ", " : "" }}
                   </span>
                   <span v-if="item.start_time">
                     {{ item.start_time.split(":").slice(0, 2).join(":") }}
